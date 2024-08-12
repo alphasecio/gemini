@@ -22,7 +22,7 @@ if option == "Answer a question":
       try:
         with st.spinner("Please wait..."):
           genai.configure(api_key=google_api_key)
-          model = genai.GenerativeModel("gemini-pro")
+          model = genai.GenerativeModel("gemini-1.5-flash")
           response = model.generate_content(prompt, stream=False)
           st.success(response.text)
       except Exception as e:
@@ -38,7 +38,7 @@ elif option == "Caption an image":
       try:
         with st.spinner("Please wait..."):
           genai.configure(api_key=google_api_key)
-          model = genai.GenerativeModel("gemini-pro-vision")
+          model = genai.GenerativeModel("gemini-1.5-flash")
           response = model.generate_content(PIL.Image.open(image), stream=False)
           st.success(response.text)
       except Exception as e:
@@ -55,7 +55,7 @@ elif option == "Blog about an image":
       try:
         with st.spinner("Please wait..."):
           genai.configure(api_key=google_api_key)
-          model = genai.GenerativeModel("gemini-pro-vision")
+          model = genai.GenerativeModel("gemini-1.5-flash")
           response = model.generate_content([prompt, PIL.Image.open(image)], stream=False)
           st.success(response.text)
       except Exception as e:
@@ -81,7 +81,7 @@ elif option == "Summarize a transcript":
       try:
         with st.spinner("Please wait..."):
           genai.configure(api_key=google_api_key)
-          model = genai.GenerativeModel("gemini-pro")
+          model = genai.GenerativeModel("gemini-1.5-flash")
           response = model.generate_content(prompt, stream=False)
           st.success(response.text)
       except Exception as e:
