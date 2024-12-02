@@ -9,7 +9,7 @@ with st.sidebar:
     "Answer a question",
     "Caption an image",
     "Blog about an image",
-    "Summarize a transcript"
+    "Summarize podcast transcript"
   ])
 
 if option == "Answer a question":
@@ -28,6 +28,7 @@ if option == "Answer a question":
       except Exception as e:
         st.exception(f"Exception: {e}")
 elif option == "Caption an image":
+  prompt = "Caption this image."
   image = st.file_uploader("Source Image", label_visibility="collapsed", type=("jpg", "jpeg", "png"))
   if image is not None:
     st.image(image, caption="Source Image")
@@ -39,7 +40,7 @@ elif option == "Caption an image":
         with st.spinner("Please wait..."):
           genai.configure(api_key=google_api_key)
           model = genai.GenerativeModel("gemini-1.5-flash")
-          response = model.generate_content(PIL.Image.open(image), stream=False)
+          response = model.generate_content([prompt, PIL.Image.open(image)], stream=False)
           st.success(response.text)
       except Exception as e:
         st.exception(f"Exception: {e}")
@@ -60,7 +61,7 @@ elif option == "Blog about an image":
           st.success(response.text)
       except Exception as e:
         st.exception(f"Exception: {e}") 
-elif option == "Summarize a transcript":
+elif option == "Summarize podcast transcript":
   prompt = """Please read through the following transcript carefully. Then, write a concise summary of the key topics, ideas and conclusions covered in the discussion between the host and the guest(s). 
   
   Organize your summary into clear sections with descriptive headers, and use bullet points to list the main takeaways under each section.
