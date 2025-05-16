@@ -46,22 +46,23 @@ with st.sidebar:
         model_option = st.selectbox("Model", list(model_options.keys()), disabled=True)
         MODEL = model_options[model_option]
     
-
 # Initialise session state for client and messages
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
 if "genai_client" not in st.session_state:
     try:
-      if use_vertex:
-          client = genai.Client(vertexai=True, project=GOOGLE_CLOUD_PROJECT, location=GOOGLE_CLOUD_LOCATION)
-      else:
-          client = genai.Client(api_key=GOOGLE_API_KEY)
+        if use_vertex:
+            st.session_state.genai_client = genai.Client(vertexai=True, project=GOOGLE_CLOUD_PROJECT, location=GOOGLE_CLOUD_LOCATION)
+        else:
+            st.session_state.genai_client = genai.Client(api_key=GOOGLE_API_KEY)
     except Exception as e:
-      st.error(f"Error: {e}")
-    st.session_state["genai_client"] = client
-else:
-    client = st.session_state["genai_client"]
+        st.error(f"Error: {e}")
+
+# Display chat history
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
 # User-Assistant chat interaction
 if prompt := st.chat_input("Ask anything", accept_file=True, file_type=["jpg", "jpeg", "png"]):
@@ -70,17 +71,22 @@ if prompt := st.chat_input("Ask anything", accept_file=True, file_type=["jpg", "
     if prompt and prompt.text:
         st.markdown(prompt.text)
     
+    image = None
     if prompt and prompt["files"]:
         image = prompt["files"][0]
         st.image(image)
-    st.session_state.messages.append({"role": "user", "content": prompt})
+    st.session_state.messages.append({"role": "user", "content": prompt.text})
 
   # Assistant response
   with st.chat_message("assistant"):
       try:
+            contents = [prompt.text] if prompt.text else []
+            if image:
+                contents.append(PIL.Image.open(image))
+
             response = st.session_state.genai_client.models.generate_content(
                 model=MODEL,
-                contents=[prompt.text, PIL.Image.open(image)],
+                contents=contents,
             )
             st.write(response.text)
             st.session_state.messages.append({"role": "assistant", "content": response.text})
