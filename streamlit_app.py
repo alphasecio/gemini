@@ -33,7 +33,7 @@ model_options = {
 }
 
 # Streamlit app config
-st.set_page_config(page_title="🧠 Gemini Chatbot", page_icon="🛡️", initial_sidebar_state="auto")
+st.set_page_config(page_title="Gemini Chatbot", page_icon="🧠", initial_sidebar_state="auto")
 
 with st.sidebar:
     st.title("🧠 Gemini Chatbot")
