@@ -1,35 +1,32 @@
 import os, io, streamlit as st
 import google.genai as genai
 import PIL.Image
-from google.genai import types
 
-def get_env_var(key, required=False, default=None):
-    value = os.getenv(key, default)
-    if value is None or value.strip() == "":
-        if required:
-            raise EnvironmentError(f"{key} environment variable is required but not set.")
-        return ""
-    return value.strip()
+# Determine if Vertex AI is to be used
+use_vertex = os.getenv("GOOGLE_GENAI_USE_VERTEXAI", "false").lower() == "true"
 
-# Get the vertex usage flag
-use_vertex = get_env_var("GOOGLE_GENAI_USE_VERTEXAI", default="false").lower() == "true"
-
-# Collect all variables
-GOOGLE_API_KEY = get_env_var("GOOGLE_API_KEY")
-GOOGLE_CLOUD_PROJECT = get_env_var("GOOGLE_CLOUD_PROJECT")
-GOOGLE_CLOUD_LOCATION = get_env_var("GOOGLE_CLOUD_LOCATION")
-
-# Conditional validation
 if use_vertex:
-    if not GOOGLE_CLOUD_PROJECT or not GOOGLE_CLOUD_LOCATION:
-        raise EnvironmentError("GOOGLE_CLOUD_PROJECT and GOOGLE_CLOUD_LOCATION must be set when using Vertex AI.")
+    # If using Vertex AI, project and location are required
+    google_cloud_project = os.getenv("GOOGLE_CLOUD_PROJECT")
+    google_cloud_location = os.getenv("GOOGLE_CLOUD_LOCATION")
+    google_api_key = None
+
+    if not google_cloud_project or google_cloud_project.strip() == "":
+        raise EnvironmentError("GOOGLE_CLOUD_PROJECT environment variable is required but not set when using Vertex AI.")
+    if not google_cloud_location or google_cloud_location.strip() == "":
+        raise EnvironmentError("GOOGLE_CLOUD_LOCATION environment variable is required but not set when using Vertex AI.")
 else:
-    if not GOOGLE_API_KEY:
-        raise EnvironmentError("GOOGLE_API_KEY must be set when not using Vertex AI.")
+    # If not using Vertex AI, Google API key is required
+    google_api_key = os.getenv("GOOGLE_API_KEY")
+    google_cloud_project = None
+    google_cloud_location = None
+
+    if not google_api_key or google_api_key.strip() == "":
+        raise EnvironmentError("GOOGLE_API_KEY environment variable is required but not set when not using Vertex AI.")
 
 model_options = {
-    "Gemini 1.5 Flash": "gemini-1.5-flash",
-    "Gemini 2.0 Flash": "gemini-2.0-flash"
+    "Gemini 2.0 Flash": "gemini-2.0-flash",
+    "Gemini 2.5 Flash": "gemini-2.5-flash-preview-05-20"
 }
 
 # Streamlit app config
@@ -43,8 +40,8 @@ with st.sidebar:
         """
     )
     with st.expander("**⚙️ Model Settings**", expanded=True):
-        model_option = st.selectbox("Model", list(model_options.keys()), disabled=True)
-        MODEL = model_options[model_option]
+        model_option = st.selectbox("Model", list(model_options.keys()), disabled=False)
+        model = model_options[model_option]
     
 # Initialise session state for client and messages
 if "messages" not in st.session_state:
@@ -53,9 +50,9 @@ if "messages" not in st.session_state:
 if "genai_client" not in st.session_state:
     try:
         if use_vertex:
-            st.session_state.genai_client = genai.Client(vertexai=True, project=GOOGLE_CLOUD_PROJECT, location=GOOGLE_CLOUD_LOCATION)
+            st.session_state.genai_client = genai.Client(vertexai=True, project=google_cloud_project, location=google_cloud_location)
         else:
-            st.session_state.genai_client = genai.Client(api_key=GOOGLE_API_KEY)
+            st.session_state.genai_client = genai.Client(api_key=google_api_key)
     except Exception as e:
         st.error(f"Error: {e}")
 
@@ -80,15 +77,16 @@ if prompt := st.chat_input("Ask anything", accept_file=True, file_type=["jpg", "
   # Assistant response
   with st.chat_message("assistant"):
       try:
-            contents = [prompt.text] if prompt.text else []
-            if image:
-                contents.append(PIL.Image.open(image))
+            with st.spinner("Please wait..."):
+                contents = [prompt.text] if prompt.text else []
+                if image:
+                    contents.append(PIL.Image.open(image))
 
-            response = st.session_state.genai_client.models.generate_content(
-                model=MODEL,
-                contents=contents,
-            )
-            st.write(response.text)
-            st.session_state.messages.append({"role": "assistant", "content": response.text})
+                response = st.session_state.genai_client.models.generate_content(
+                    model=model,
+                    contents=contents,
+                )
+                st.write(response.text)
+                st.session_state.messages.append({"role": "assistant", "content": response.text})
       except Exception as e:
           st.error(f"Error: {e}")
