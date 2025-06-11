@@ -30,10 +30,10 @@ model_options = {
 }
 
 # Streamlit app config
-st.set_page_config(page_title="Gemini Chatbot", page_icon="🧠", initial_sidebar_state="auto")
+st.set_page_config(page_title="Gemini Chatbot", page_icon="💬", initial_sidebar_state="auto")
 
 with st.sidebar:
-    st.title("🧠 Gemini Chatbot")
+    st.title("💬 Gemini Chatbot")
     st.caption(
         """
         This chatbot uses Google Gemini to answer your questions. Upload an image and/or ask a question to get started.
