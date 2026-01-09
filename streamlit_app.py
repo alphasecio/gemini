@@ -25,8 +25,9 @@ else:
         raise EnvironmentError("GOOGLE_API_KEY environment variable is required but not set when not using Vertex AI.")
 
 model_options = {
-    "Gemini 2.0 Flash": "gemini-2.0-flash",
-    "Gemini 2.5 Flash": "gemini-2.5-flash-preview-05-20"
+    "Gemini 2.5 Flash Lite": "gemini-2.5-flash-lite",
+    "Gemini 2.5 Flash": "gemini-2.5-flash",
+    "Gemini 3 Flash": "gemini-3-flash-preview"
 }
 
 # Streamlit app config
